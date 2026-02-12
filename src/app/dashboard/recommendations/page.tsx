@@ -39,6 +39,8 @@ export default function Recommendations() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
+    let cancelled = false;
+
     const storedUser = localStorage.getItem('user');
     const token = localStorage.getItem('token');
     const saved = localStorage.getItem('savedColleges');
@@ -48,39 +50,48 @@ export default function Recommendations() {
       return;
     }
 
-    try {
-      const userData = JSON.parse(storedUser);
-      setUser(userData);
-      if (saved) setSavedColleges(JSON.parse(saved));
+    const bootstrap = async () => {
+      let userData: UserProfile;
+      try {
+        userData = JSON.parse(storedUser);
+      } catch {
+        if (!cancelled) router.push('/auth/login');
+        return;
+      }
 
-      // Fetch colleges and generate recommendations
-      fetch('/api/colleges')
-        .then((res) => res.json())
-        .then((data) => {
-          const list: College[] = Array.isArray(data?.data) ? data.data : [];
-          const normalized = list.map((college, index) => ({
-            ...college,
-            id: college.id || generateCollegeId(college.name || `college-${index}`, college.location || `loc-${index}`),
-          }));
-          const recommended = generateRecommendations(userData, normalized);
-          setRecommendations(recommended.slice(0, 6)); // Top 6 recommendations
-        })
-        .catch(() => {
+      try {
+        if (!cancelled) setUser(userData);
+        if (saved && !cancelled) setSavedColleges(JSON.parse(saved));
+
+        const res = await fetch('/api/colleges');
+        const data = await res.json();
+        const list: College[] = Array.isArray(data?.data) ? data.data : [];
+        const normalized = list.map((college, index) => ({
+          ...college,
+          id: college.id || generateCollegeId(college.name || `college-${index}`, college.location || `loc-${index}`),
+        }));
+        const recommended = generateRecommendations(userData, normalized);
+        if (!cancelled) setRecommendations(recommended.slice(0, 6));
+      } catch (e) {
+        console.error('Error:', e);
+        if (!cancelled) {
           setMessage('Could not load recommendations right now.');
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    } catch (e) {
-      console.error('Error:', e);
-      router.push('/auth/login');
-      setLoading(false);
-    }
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    bootstrap();
+    return () => {
+      cancelled = true;
+    };
   }, [router]);
 
   const institutionBucket = (college: College): string => {
-    if (college.name.includes('Indian Institute of Technology')) return 'IIT';
-    if (college.name.includes('National Institute of Technology')) return 'NIT';
+    const name = college.name.toLowerCase();
+    if (name.includes('indian institute of technology') || name.includes('iit')) return 'IIT';
+    if (name.includes('national institute of technology') || name.includes('nit')) return 'NIT';
     if (college.type === 'Private') return 'PRIVATE';
     if (college.type === 'Government') return 'GOV';
     return 'OTHER';

@@ -304,7 +304,7 @@ export default function Dashboard() {
                       <span className="bg-indigo-50 text-indigo-700 px-2 py-1 rounded">Rank #{college.ranking}</span>
                       <span className="bg-emerald-50 text-emerald-700 px-2 py-1 rounded">{college.placement_rate}% Placement</span>
                     </div>
-                    <Link href={`/dashboard/colleges?id=${college.id}`} className="text-indigo-700 hover:text-indigo-900 font-semibold text-sm">
+                    <Link href={`/dashboard/colleges/${college.id}`} className="text-indigo-700 hover:text-indigo-900 font-semibold text-sm">
                       View Details →
                     </Link>
                   </div>
