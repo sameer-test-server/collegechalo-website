@@ -46,6 +46,8 @@ export default function Dashboard() {
   const profileCompletion = getProfileCompletionPercent(user);
 
   useEffect(() => {
+    let cancelled = false;
+
     const storedUser = localStorage.getItem('user');
     const token = localStorage.getItem('token');
     const saved = localStorage.getItem('savedColleges');
@@ -56,20 +58,27 @@ export default function Dashboard() {
       return;
     }
 
-    try {
+    const bootstrap = async () => {
+      try {
       setUser(JSON.parse(storedUser));
       if (saved) setSavedColleges(JSON.parse(saved));
       if (apps) setApplications(JSON.parse(apps));
-      
-      // Fetch colleges
-      fetch('/api/colleges?minRank=1&maxRank=15')
-        .then(res => res.json())
-        .then(data => setColleges(data.data.slice(0, 5)));
-    } catch (e) {
-      console.error('Failed to parse user from storage');
-      router.push('/auth/login');
-    }
-    setLoading(false);
+
+        const res = await fetch('/api/colleges?minRank=1&maxRank=15');
+        const data = await res.json();
+        if (!cancelled) setColleges((data.data || []).slice(0, 5));
+      } catch (e) {
+        console.error('Failed to initialize dashboard', e);
+        if (!cancelled) router.push('/auth/login');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    bootstrap();
+    return () => {
+      cancelled = true;
+    };
   }, [router]);
 
   useEffect(() => {

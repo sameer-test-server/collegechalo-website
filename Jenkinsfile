@@ -4,11 +4,18 @@ pipeline {
   options {
     timestamps()
     disableConcurrentBuilds()
-    timeout(time: 25, unit: 'MINUTES')
+    timeout(time: 40, unit: 'MINUTES')
+    buildDiscarder(logRotator(numToKeepStr: '30'))
   }
 
   environment {
-    NODE_ENV = 'production'
+    APP_NAME = 'collegechalo'
+    CONTAINER_NAME = 'collegechalo-app'
+    IMAGE_REPO = 'collegechalo/website'
+    APP_PORT = '3000'
+    // Jenkins credentials IDs expected:
+    // - mongodb-uri
+    // - jwt-secret
   }
 
   stages {
@@ -18,47 +25,89 @@ pipeline {
       }
     }
 
-    stage('Install') {
+    stage('Prepare Tags') {
       steps {
-        sh 'npm ci --no-audit --no-fund'
+        script {
+          env.GIT_SHA = sh(script: "git rev-parse --short=8 HEAD", returnStdout: true).trim()
+          env.IMAGE_TAG = "${env.BUILD_NUMBER}-${env.GIT_SHA}"
+          env.IMAGE_FULL = "${env.IMAGE_REPO}:${env.IMAGE_TAG}"
+          env.IMAGE_LATEST = "${env.IMAGE_REPO}:latest"
+        }
+        sh 'echo "Building image: $IMAGE_FULL"'
       }
     }
 
-    stage('Type Check') {
+    stage('Build Docker Image') {
       steps {
-        sh 'npx tsc --noEmit'
+        // Build from Dockerfile (multi-stage build)
+        sh '''
+          docker build \
+            --pull \
+            -t "$IMAGE_FULL" \
+            -t "$IMAGE_LATEST" \
+            .
+        '''
       }
     }
 
-    stage('Unit Tests') {
-      steps {
-        sh 'npm test -- --runInBand'
-      }
-    }
-
-    stage('Build') {
-      steps {
-        // Webpack build is currently more stable in this project than Turbopack on CI hosts.
-        sh 'npx next build --webpack'
-      }
-    }
-
-    stage('Deploy (PM2)') {
+    stage('Deploy Container (main only)') {
       when {
         branch 'main'
       }
       steps {
-        sh 'bash scripts/deploy-production.sh'
+        withCredentials([
+          string(credentialsId: 'mongodb-uri', variable: 'MONGODB_URI'),
+          string(credentialsId: 'jwt-secret', variable: 'JWT_SECRET')
+        ]) {
+          sh '''
+            # Stop and remove old container if it exists
+            docker rm -f "$CONTAINER_NAME" 2>/dev/null || true
+
+            # Run new container from freshly built image
+            docker run -d \
+              --name "$CONTAINER_NAME" \
+              --restart unless-stopped \
+              -p "$APP_PORT:3000" \
+              -e NODE_ENV=production \
+              -e PORT=3000 \
+              -e MONGODB_URI="$MONGODB_URI" \
+              -e JWT_SECRET="$JWT_SECRET" \
+              "$IMAGE_FULL"
+          '''
+        }
+      }
+    }
+
+    stage('Health Check (main only)') {
+      when {
+        branch 'main'
+      }
+      steps {
+        sh '''
+          for i in $(seq 1 20); do
+            if curl -fsS "http://127.0.0.1:${APP_PORT}" >/dev/null; then
+              echo "Health check passed"
+              exit 0
+            fi
+            echo "Waiting for container..."
+            sleep 3
+          done
+          echo "Health check failed"
+          docker logs --tail=120 "$CONTAINER_NAME" || true
+          exit 1
+        '''
       }
     }
   }
 
   post {
     success {
-      echo 'Build and deploy completed successfully.'
+      echo "Pipeline succeeded: ${env.IMAGE_FULL}"
     }
     failure {
-      echo 'Pipeline failed. Check stage logs.'
+      sh 'docker ps -a --filter "name=$CONTAINER_NAME" || true'
+      sh 'docker logs --tail=200 "$CONTAINER_NAME" || true'
+      echo 'Pipeline failed. Check stage logs above.'
     }
   }
 }

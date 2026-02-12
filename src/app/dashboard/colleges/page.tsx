@@ -34,6 +34,8 @@ export default function BrowseColleges() {
   const [savedColleges, setSavedColleges] = useState<string[]>([]);
 
   useEffect(() => {
+    let cancelled = false;
+
     const token = localStorage.getItem('token');
     const saved = localStorage.getItem('savedColleges');
 
@@ -42,18 +44,25 @@ export default function BrowseColleges() {
       return;
     }
 
-    try {
-      if (saved) setSavedColleges(JSON.parse(saved));
+    const bootstrap = async () => {
+      try {
+        if (saved) setSavedColleges(JSON.parse(saved));
 
-      // Fetch colleges
-      fetch('/api/colleges')
-        .then(res => res.json())
-        .then(data => setColleges(data.data));
-    } catch (e) {
-      console.error('Error:', e);
-      router.push('/auth/login');
-    }
-    setLoading(false);
+        const res = await fetch('/api/colleges');
+        const data = await res.json();
+        if (!cancelled) setColleges(data.data || []);
+      } catch (e) {
+        console.error('Error:', e);
+        if (!cancelled) router.push('/auth/login');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    bootstrap();
+    return () => {
+      cancelled = true;
+    };
   }, [router]);
 
   const handleLogout = () => {

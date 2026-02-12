@@ -22,6 +22,8 @@ export default function SavedColleges() {
   const [actionMessage, setActionMessage] = useState('');
 
   useEffect(() => {
+    let cancelled = false;
+
     const token = localStorage.getItem('token');
     const saved = localStorage.getItem('savedColleges');
 
@@ -30,23 +32,31 @@ export default function SavedColleges() {
       return;
     }
 
-    try {
+    const bootstrap = async () => {
+      try {
+        const res = await fetch('/api/colleges');
+        const data = await res.json();
+        const allColleges: College[] = data.data || [];
 
-      // Fetch all colleges
-      fetch('/api/colleges')
-        .then(res => res.json())
-        .then(data => {
-          if (saved) {
-            const savedIds = JSON.parse(saved);
-            const saved_colleges = data.data.filter((c: College) => savedIds.includes(c.id));
-            setSavedColleges(saved_colleges);
-          }
-        });
-    } catch (e) {
-      console.error('Error:', e);
-      router.push('/auth/login');
-    }
-    setLoading(false);
+        if (saved) {
+          const savedIds = JSON.parse(saved);
+          const saved_colleges = allColleges.filter((c: College) => savedIds.includes(c.id));
+          if (!cancelled) setSavedColleges(saved_colleges);
+        } else if (!cancelled) {
+          setSavedColleges([]);
+        }
+      } catch (e) {
+        console.error('Error:', e);
+        if (!cancelled) router.push('/auth/login');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    bootstrap();
+    return () => {
+      cancelled = true;
+    };
   }, [router]);
 
   const handleLogout = () => {
