@@ -216,3 +216,49 @@ Generate secure secret:
 ```bash
 openssl rand -hex 32
 ```
+
+## 13) Internal Notes (Owner-Only)
+This section was moved from README so public docs stay clean.
+
+### Project intent
+- Student-friendly platform to discover colleges, compare options, and manage admission workflows.
+- Keep operations simple enough to maintain with runbooks.
+
+### Core user flow
+1. Visitor explores colleges.
+2. User registers/logs in.
+3. User saves colleges and compares options.
+4. User tracks applications and preferences.
+5. User submits contact/lead requests.
+
+### Team/ops focus
+- Keep PM2 + Nginx stable in production.
+- Maintain API/database reliability.
+- Use this file for fast troubleshooting and deploy recovery.
+
+### Git workflow (owner)
+```bash
+git checkout -b feature/<change-name>
+git add .
+git commit -m "your message"
+git push origin feature/<change-name>
+```
+
+Merge to `main` after validation.
+
+### Jenkins notes (owner)
+- Pipeline source: `Jenkinsfile`
+- Deploy script: `scripts/deploy-production.sh`
+- Typical stages:
+1. Checkout
+2. Install (`npm ci`)
+3. Type-check (`npm run type-check`)
+4. Tests (`npm test -- --runInBand`)
+5. Build (`npm run build -- --webpack`)
+6. Deploy on `main`
+
+### Server assumptions
+- Node.js + npm installed
+- PM2 available (`npx pm2 ...`)
+- Nginx reverse proxy configured
+- Production app path often used: `/home/ubuntu/collegechalo-website`
