@@ -1,0 +1,218 @@
+# College Chalo Runbook (start, deploy, troubleshoot)
+
+## 1) Local setup (first time)
+```bash
+cd /Users/sameer/collegechalo-website
+node -v
+npm -v
+npm install
+```
+
+If dependency install fails:
+```bash
+rm -rf node_modules package-lock.json
+npm install
+```
+
+## 2) Start locally (development)
+```bash
+cd /Users/sameer/collegechalo-website
+npm run dev
+```
+
+Check site:
+```bash
+curl -I http://localhost:3000
+```
+
+## 3) Start locally (production mode)
+```bash
+cd /Users/sameer/collegechalo-website
+npm run build -- --webpack
+npm run start:prod
+```
+
+## 4) PM2 start/restart/reload (same machine)
+Start app if missing:
+```bash
+cd /Users/sameer/collegechalo-website
+npx pm2 start npm --name collegechalo -- start
+```
+
+Reload app after code/build update:
+```bash
+npx pm2 reload collegechalo
+```
+
+Restart app (harder reset than reload):
+```bash
+npx pm2 restart collegechalo
+```
+
+Check status/logs:
+```bash
+npx pm2 status
+npx pm2 logs collegechalo --lines 120
+```
+
+Persist PM2 list:
+```bash
+npx pm2 save
+```
+
+## 5) Standard deploy flow (recommended every change)
+```bash
+cd /Users/sameer/collegechalo-website
+git pull
+npm install
+npm run build -- --webpack
+npx pm2 reload collegechalo
+npx pm2 status
+```
+
+Optional quality checks before build:
+```bash
+npm run type-check
+npm test -- --runInBand
+```
+
+## 6) Mongo/DB helper commands
+Migrate endpoint:
+```bash
+curl -sS -X POST http://localhost:3000/api/migrate
+```
+
+Data scripts:
+```bash
+npm run seed-mongo
+npm run import-localstorage
+npm run create-indexes
+```
+
+## 7) Nginx commands (Ubuntu server only)
+Check config:
+```bash
+sudo nginx -t
+```
+
+Reload/restart:
+```bash
+sudo systemctl reload nginx
+sudo systemctl restart nginx
+sudo systemctl status nginx
+```
+
+Logs:
+```bash
+sudo tail -n 200 /var/log/nginx/collegechalo-error.log
+sudo tail -n 200 /var/log/nginx/collegechalo-access.log
+```
+
+## 8) Issue -> Fix quick guide
+App UI changed in code but website not updated:
+```bash
+cd /Users/sameer/collegechalo-website
+npm run build -- --webpack
+npx pm2 reload collegechalo
+```
+
+PM2 says app not found:
+```bash
+cd /Users/sameer/collegechalo-website
+npx pm2 start npm --name collegechalo -- start
+npx pm2 status
+```
+
+PM2 app stuck in `stopping` or keeps restarting:
+```bash
+npx pm2 logs collegechalo --lines 200
+npx pm2 restart collegechalo
+```
+
+`localhost:3000` not reachable:
+```bash
+npx pm2 status
+npx pm2 logs collegechalo --lines 120
+```
+
+If still down:
+```bash
+cd /Users/sameer/collegechalo-website
+npm run build -- --webpack
+npx pm2 restart collegechalo
+```
+
+Build fails with Turbopack error:
+```bash
+npm run build -- --webpack
+```
+
+Type-check fails due to missing `.next/types/*`:
+```bash
+cd /Users/sameer/collegechalo-website
+npm run build -- --webpack
+npm run type-check
+```
+
+MongoDB connection errors (`ECONNREFUSED` / auth / DNS):
+- Verify `MONGODB_URI` in env file.
+- Check Atlas IP whitelist.
+- URL-encode special chars in password.
+
+Nginx `502 Bad Gateway`:
+```bash
+npx pm2 status
+curl -I http://127.0.0.1:3000
+sudo nginx -t
+sudo systemctl restart nginx
+```
+
+## 9) Emergency recovery (copy-paste)
+```bash
+cd /Users/sameer/collegechalo-website
+git pull
+npm install
+npm run build -- --webpack
+npx pm2 start npm --name collegechalo -- start
+npx pm2 reload collegechalo
+npx pm2 status
+```
+
+## 10) Rollback if latest deploy is broken
+```bash
+cd /Users/sameer/collegechalo-website
+git log --oneline -n 10
+git checkout <LAST_WORKING_COMMIT_HASH>
+npm install
+npm run build -- --webpack
+npx pm2 reload collegechalo
+```
+
+Return to main later:
+```bash
+git checkout main
+```
+
+## 11) Useful project scripts
+```bash
+npm run dev
+npm run build
+npm run start
+npm run start:prod
+npm run type-check
+npm run lint
+npm run test:e2e
+npm run seed-mongo
+npm run import-localstorage
+npm run create-indexes
+```
+
+## 12) Security basics
+- Keep `.env` and `.env.production` private.
+- Use strong `JWT_SECRET` (32+ chars).
+- Rotate DB credentials if exposed.
+
+Generate secure secret:
+```bash
+openssl rand -hex 32
+```
