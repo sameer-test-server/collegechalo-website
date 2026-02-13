@@ -32,6 +32,33 @@ npm run build -- --webpack
 npm run start:prod
 ```
 
+## 3.1) Start with Docker (recommended for deployment-like local testing)
+Prepare env file first:
+```bash
+cd /Users/sameer/collegechalo-website
+cat > .env <<'EOF'
+MONGODB_URI=your_mongodb_uri
+JWT_SECRET=your_jwt_secret
+EOF
+```
+
+Build and run:
+```bash
+docker compose up --build -d
+docker ps
+```
+
+Health checks:
+```bash
+curl -I http://localhost:3000
+curl -I http://localhost:80
+```
+
+Stop containers:
+```bash
+docker compose down
+```
+
 ## 4) PM2 start/restart/reload (same machine)
 Start app if missing:
 ```bash
@@ -256,6 +283,32 @@ Merge to `main` after validation.
 4. Tests (`npm test -- --runInBand`)
 5. Build (`npm run build -- --webpack`)
 6. Deploy on `main`
+
+### Jenkins quick bootstrap (containerized)
+Run Jenkins in Docker:
+```bash
+docker run -d \
+  --name jenkins \
+  -p 8080:8080 -p 50000:50000 \
+  -v jenkins_home:/var/jenkins_home \
+  jenkins/jenkins:lts
+```
+
+Get initial admin password:
+```bash
+docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+```
+
+Open:
+```text
+http://localhost:8080
+```
+
+After login:
+1. Install suggested plugins.
+2. Add credentials (`mongodb-uri`, `jwt-secret`).
+3. Create Pipeline job from repo `main` using `Jenkinsfile`.
+4. Add GitHub webhook to trigger builds on push.
 
 ### Server assumptions
 - Node.js + npm installed

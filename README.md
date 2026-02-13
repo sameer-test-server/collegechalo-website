@@ -15,6 +15,8 @@ College Chalo is a full-stack platform for college discovery, comparison, and ad
 - Next.js API routes
 - MongoDB (with static fallback data)
 - PM2 + Nginx for deployment
+- Docker + Docker Compose (local container deployment)
+- Jenkins pipeline (`Jenkinsfile`) for CI/CD
 
 ## Quick Start
 ```bash
@@ -31,6 +33,17 @@ npm run build -- --webpack
 npm run start:prod
 ```
 
+## Docker Run
+```bash
+cd /Users/sameer/collegechalo-website
+docker compose up --build -d
+docker ps
+```
+
+Endpoints:
+- App: `http://localhost:3000`
+- Nginx proxy: `http://localhost:80`
+
 ## Environment
 Create environment values from `.env.example`.
 
@@ -38,6 +51,12 @@ Common keys:
 - `MONGODB_URI`
 - `JWT_SECRET`
 - `PORT` (optional, default app port behavior applies)
+
+For Docker Compose, create `.env` in project root with at least:
+```env
+MONGODB_URI=...
+JWT_SECRET=...
+```
 
 ## Scripts
 ```bash
@@ -52,11 +71,17 @@ npm run test
 ## Deployment / Operations
 - Full runbook: `commands.md`
 - Daily quick commands: `QUICK_START.md`
+- Project roadmap + status: `PROJECT_PATH.md`
 
 ## CI/CD
 This repo includes:
 - `Jenkinsfile`
 - `scripts/deploy-production.sh`
+
+Current CI/CD status:
+- Jenkins pipeline file is ready.
+- Docker image and compose flow are working locally.
+- Next step is starting Jenkins service and connecting GitHub webhook.
 
 ## License
 Private project (no public license file currently).

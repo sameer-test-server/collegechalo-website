@@ -507,8 +507,8 @@ curl -X POST http://localhost:3000/api/migrate
 
 ## Next Steps
 
-1. **Phase 17:** Add Docker configuration for containerized deployments
-2. **Phase 17:** Set up CI/CD pipeline (GitHub Actions)
+1. **Phase 17:** Start Jenkins and connect pipeline to GitHub webhook
+2. **Phase 17:** Execute first CI/CD deployment run from `Jenkinsfile`
 3. **Phase 17:** Add monitoring/logging automation and alerting
 4. **Phase 18:** Complete API/user/developer documentation for launch
 5. **Phase 18:** Launch readiness checklist and production release runbook
@@ -528,18 +528,14 @@ curl -X POST http://localhost:3000/api/migrate
 - 🔶 Remaining work: finalize a few private-college image sources (where stable direct URLs are still pending)
 
 ### Git Status
-- 🔶 Local changes currently include:
-  - `src/lib/colleges-data.ts` (major image URL updates)
-  - `src/app/colleges/[id]/CollegeDetailsClient.tsx` (hero background image layout)
-  - `src/app/dashboard/colleges/[id]/DashboardCollegeDetailsClient.tsx` (hero background image layout)
+- ✅ Image migration + detail hero layout + docs updates committed and pushed.
+- ✅ PM2 portability fixes committed and pushed.
 
 ### Immediate Next Actions
-1. Finalize remaining college image links (replace any unstable/indirect URLs).
-2. Commit and push the full image-migration batch to `main`.
-3. Rebuild and reload PM2 to verify production reflects all updates.
-4. Start a small media hardening pass:
-   - add image URL validation/fallback policy
-   - optionally migrate image rendering to `next/image` where practical.
+1. Start Jenkins service locally (containerized).
+2. Configure Jenkins credentials (`mongodb-uri`, `jwt-secret`) and repository pipeline job.
+3. Configure GitHub webhook and trigger first automated build.
+4. Validate CI deploy flow (build image, run container, health check pass).
 
 ---
 
@@ -557,6 +553,7 @@ curl -X POST http://localhost:3000/api/migrate
 - Nginx: Reverse proxy active on port `8080`, serving app to local network devices
 - Process Manager: PM2 active (`collegechalo` online)
 - Logs: `npx pm2 logs collegechalo` and `/usr/local/var/log/nginx/`
+- Docker Compose: working (`collegechalo-app` on `:3000`, `collegechalo-nginx` on `:80`)
 
 ### Configuration
 - Environment variables: `.env.local` (dev), `.env.production` (prod)
@@ -572,10 +569,10 @@ curl -X POST http://localhost:3000/api/migrate
 
 ---
 
-**Last Updated:** February 11, 2026 (Phase 16 - Admin dashboard completed)  
+**Last Updated:** February 13, 2026 (Docker runtime + compose deployment verified)  
 **Project Lead:** Sameer  
-**Status:** Active Development -> Local PM2 + Nginx deployment running  
-**Next Deployment:** Public domain + SSL + server hardening (Phase 17 scope)
+**Status:** Active Development -> PM2 runtime + Docker Compose runtime both working locally  
+**Next Deployment:** Jenkins pipeline bootstrap + webhook-driven CI/CD (Phase 17 scope)
 
 ---
 
