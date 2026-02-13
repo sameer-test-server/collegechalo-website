@@ -338,11 +338,11 @@ npm installashboard smoke test
 
 ---
 
-## Phase 17: Deployment & DevOps (UPCOMING)
-**Status:** Planned  
-**Duration:** Week 20  
+## Phase 17: Deployment & DevOps 🔄 IN PROGRESS
+**Status:** In Progress  
+**Duration:** Week 20 (ongoing)  
 **Objectives:**
-- Set up CI/CD pipeline (GitHub Actions)
+- Set up CI/CD pipeline (Jenkins + GitHub webhook)
 - Configure deployment (Vercel/AWS)
 - Set up monitoring and logging
 - Configure environment management
@@ -350,12 +350,13 @@ npm installashboard smoke test
 - Create deployment documentation
 
 **Deliverables:**
-- Docker containerization
-- GitHub Actions CI/CD
-- Production deployment
-- Monitoring dashboard
-- Logging system
-- Performance metrics
+- ✅ Docker containerization (`collegechalo-app` + `collegechalo-nginx`)
+- ✅ Jenkins pipeline job configured (`collegechalo-ci`) from `Jenkinsfile`
+- ✅ Automated CI deploy validated (build, deploy, health-check) - latest success: build `#8`
+- ✅ Jenkins credentials configured and verified (`mongodb-uri`, `jwt-secret`)
+- 🔶 GitHub webhook auto-trigger validation pending final confirmation
+- 🔶 Production domain + SSL pending
+- 🔶 Monitoring/alerting dashboard pending
 
 ---
 
@@ -401,10 +402,10 @@ npm installashboard smoke test
 | 14 | Code Quality & Deployment | ✅ Completed | 100% |
 | 15 | Advanced Features | ✅ Completed | 100% |
 | 16 | Admin Dashboard | ✅ Completed | 100% |
-| 17 | Deployment & DevOps | 🔄 Upcoming | 0% |
+| 17 | Deployment & DevOps | 🔄 In Progress | 70% |
 | 18 | Documentation & Launch | 🔄 Upcoming | 0% |
 
-**Overall Project Completion: 89% (16/18 phases complete)**
+**Overall Project Completion: 93% (16 phases complete + Phase 17 in progress)**
 
 ---
 
@@ -418,7 +419,8 @@ npm installashboard smoke test
 - **TypeScript Errors:** 0 ✅
 - **Jest Tests:** 9 passing (4 suites) ✅
 - **Development Server:** Running on port 3000
-- **Production Deployment:** Ready (Nginx + PM2/systemd configured)
+- **Production-like Runtime:** Working locally via Docker Compose (`:3000` app, `:80` nginx)
+- **Jenkins CI/CD:** Working locally on `:18080` with successful deploy pipeline
 - **Security:** Security headers configured, `.env` protected, HTTPS template ready (not enabled for local IP)
 
 ---
@@ -507,11 +509,11 @@ curl -X POST http://localhost:3000/api/migrate
 
 ## Next Steps
 
-1. **Phase 17:** Start Jenkins and connect pipeline to GitHub webhook
-2. **Phase 17:** Execute first CI/CD deployment run from `Jenkinsfile`
+1. **Phase 17:** Confirm GitHub webhook-driven auto trigger (push -> Jenkins build) end-to-end
+2. **Phase 17:** Decide production hosting target + domain mapping + SSL
 3. **Phase 17:** Add monitoring/logging automation and alerting
 4. **Phase 18:** Complete API/user/developer documentation for launch
-5. **Phase 18:** Launch readiness checklist and production release runbook
+5. **Phase 18:** Final launch readiness checklist and production release runbook
 
 ---
 
@@ -532,10 +534,10 @@ curl -X POST http://localhost:3000/api/migrate
 - ✅ PM2 portability fixes committed and pushed.
 
 ### Immediate Next Actions
-1. Start Jenkins service locally (containerized).
-2. Configure Jenkins credentials (`mongodb-uri`, `jwt-secret`) and repository pipeline job.
-3. Configure GitHub webhook and trigger first automated build.
-4. Validate CI deploy flow (build image, run container, health check pass).
+1. Validate webhook automation from GitHub pushes.
+2. Add external production deployment target (cloud VM/VPS) with domain and SSL.
+3. Add uptime monitoring and alerting for app/nginx/Jenkins health.
+4. Keep docs (`README.md`, `commands.md`, `PROJECT_PATH.md`) in sync with each infra change.
 
 ---
 
@@ -550,10 +552,11 @@ curl -X POST http://localhost:3000/api/migrate
 ### Production
 - Build: `npx next build --webpack` (stable in current local environment)
 - Run: PM2-managed `npm start` on port 3000 (`npx pm2 start npm --name collegechalo -- start`)
-- Nginx: Reverse proxy active on port `8080`, serving app to local network devices
+- Nginx: Reverse proxy active on port `80` (Docker), app also reachable directly on `3000`
 - Process Manager: PM2 active (`collegechalo` online)
 - Logs: `npx pm2 logs collegechalo` and `/usr/local/var/log/nginx/`
 - Docker Compose: working (`collegechalo-app` on `:3000`, `collegechalo-nginx` on `:80`)
+- Jenkins: working (`jenkins` on `:18080`, pipeline `collegechalo-ci` successful on latest run)
 
 ### Configuration
 - Environment variables: `.env.local` (dev), `.env.production` (prod)
@@ -565,14 +568,14 @@ curl -X POST http://localhost:3000/api/migrate
 - This document (`PROJECT_PATH.md`) tracks all completed phases and current status
 - `commands.md` lists all executable commands with explanations
 - `deploy/` folder contains production configuration templates
-- For continuation: check Phase 16 status, then proceed with Phase 17 DevOps tasks
+- For continuation: proceed with remaining Phase 17 tasks (webhook confirmation, external production hardening)
 
 ---
 
-**Last Updated:** February 13, 2026 (Docker runtime + compose deployment verified)  
+**Last Updated:** February 13, 2026 (Jenkins build #8 success + docker/nginx/app runtime verified)  
 **Project Lead:** Sameer  
-**Status:** Active Development -> PM2 runtime + Docker Compose runtime both working locally  
-**Next Deployment:** Jenkins pipeline bootstrap + webhook-driven CI/CD (Phase 17 scope)
+**Status:** Active Development -> PM2 runtime + Docker Compose runtime + Jenkins CI/CD working locally  
+**Next Deployment:** Webhook-driven CI validation + external production environment setup
 
 ---
 

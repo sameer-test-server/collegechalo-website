@@ -284,12 +284,23 @@ Merge to `main` after validation.
 5. Build (`npm run build -- --webpack`)
 6. Deploy on `main`
 
+### Jenkins current setup (owner)
+- Jenkins container name: `jenkins`
+- Jenkins URL: `http://localhost:18080/login`
+- Job name: `collegechalo-ci`
+- Required credentials in Jenkins:
+  - `mongodb-uri`
+  - `jwt-secret`
+- App containers:
+  - `collegechalo-app` (port `3000`)
+  - `collegechalo-nginx` (port `80`)
+
 ### Jenkins quick bootstrap (containerized)
 Run Jenkins in Docker:
 ```bash
 docker run -d \
   --name jenkins \
-  -p 8080:8080 -p 50000:50000 \
+  -p 18080:8080 -p 50000:50000 \
   -v jenkins_home:/var/jenkins_home \
   jenkins/jenkins:lts
 ```
@@ -301,7 +312,7 @@ docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
 
 Open:
 ```text
-http://localhost:8080
+http://localhost:18080
 ```
 
 After login:
@@ -309,6 +320,35 @@ After login:
 2. Add credentials (`mongodb-uri`, `jwt-secret`).
 3. Create Pipeline job from repo `main` using `Jenkinsfile`.
 4. Add GitHub webhook to trigger builds on push.
+
+### Jenkins health checks (owner)
+```bash
+# check runtime
+docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
+
+# check endpoints
+curl -I http://localhost:18080/login
+curl -I http://localhost:3000
+curl -I http://localhost:80
+
+# inspect recent Jenkins logs
+docker logs --tail 200 jenkins
+
+# inspect recent pipeline console logs
+curl -sS -u 'sameer:<API_TOKEN>' \
+  'http://localhost:18080/job/collegechalo-ci/lastBuild/consoleText' | tail -n 200
+```
+
+### Jenkins known-fix checklist (owner)
+If pipeline fails during deploy/health:
+1. Ensure Jenkins credentials are non-empty (`mongodb-uri`, `jwt-secret`).
+2. Ensure deploy container joins nginx network: `collegechalo-website_collegechalo-net`.
+3. Ensure health check runs inside deployed container (`docker exec ... wget ...`).
+4. Re-run pipeline and confirm:
+   - `Deploy Container`
+   - `Health Check`
+   - `Health check passed`
+   - `Finished: SUCCESS`
 
 ### Server assumptions
 - Node.js + npm installed

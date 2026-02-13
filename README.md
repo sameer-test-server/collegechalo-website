@@ -78,10 +78,32 @@ This repo includes:
 - `Jenkinsfile`
 - `scripts/deploy-production.sh`
 
-Current CI/CD status:
-- Jenkins pipeline file is ready.
-- Docker image and compose flow are working locally.
-- Next step is starting Jenkins service and connecting GitHub webhook.
+Jenkins status (current):
+- Jenkins is running in Docker on `http://localhost:18080` (or `http://<your-lan-ip>:18080`).
+- Pipeline job `collegechalo-ci` is configured from `main` using `Jenkinsfile`.
+- Required Jenkins credentials are configured:
+  - `mongodb-uri`
+  - `jwt-secret`
+- Latest verified pipeline run completed successfully (build + deploy + health check).
+
+Deployment URLs (current local setup):
+- App (direct): `http://localhost:3000`
+- Nginx reverse proxy: `http://localhost:80`
+- Jenkins UI: `http://localhost:18080/login`
+
+Jenkins troubleshooting (quick):
+```bash
+# containers and ports
+docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
+
+# verify endpoints
+curl -I http://localhost:18080/login
+curl -I http://localhost:3000
+curl -I http://localhost:80
+
+# view Jenkins logs
+docker logs --tail 200 jenkins
+```
 
 ## License
 Private project (no public license file currently).
