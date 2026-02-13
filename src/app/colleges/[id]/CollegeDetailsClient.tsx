@@ -110,12 +110,12 @@ export default function CollegeDetailsClient({ college, backHref = '/colleges' }
   const imageSources = useMemo(() => {
     const domain = (college.website || '').replace(/^https?:\/\//, '').trim();
     const unique = new Set<string>();
+    if (college.image_url && college.image_url.trim().length > 0) {
+      unique.add(college.image_url.trim());
+    }
     if (domain) {
       unique.add(`https://logo.clearbit.com/${domain}`);
       unique.add(`https://www.google.com/s2/favicons?domain=${domain}&sz=256`);
-    }
-    if (college.image_url && college.image_url.trim().length > 0) {
-      unique.add(college.image_url.trim());
     }
     unique.add('/college-placeholder.svg');
     return Array.from(unique);
@@ -141,15 +141,22 @@ export default function CollegeDetailsClient({ college, backHref = '/colleges' }
       </div>
       <h1 className="text-2xl font-bold mb-2">{college.name}</h1>
       <p className="text-sm text-gray-600 mb-4">{college.location}</p>
-      <img
-        src={imageSrc}
-        alt={college.name}
-        className="w-full h-56 object-contain bg-white rounded mb-4"
-        loading="lazy"
-        onError={() => {
-          setImageIndex((prev) => Math.min(prev + 1, imageSources.length - 1));
-        }}
-      />
+      <div className="relative mb-6 h-64 overflow-hidden rounded-2xl border border-slate-200 md:h-80">
+        <img
+          src={imageSrc}
+          alt={`${college.name} campus`}
+          className="absolute inset-0 h-full w-full object-cover"
+          loading="lazy"
+          onError={() => {
+            setImageIndex((prev) => Math.min(prev + 1, imageSources.length - 1));
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-900/10 to-transparent" />
+        <div className="absolute bottom-4 left-4 right-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-200/90">Campus View</p>
+          <p className="mt-1 text-lg font-semibold text-white md:text-xl">{college.name}</p>
+        </div>
+      </div>
       {college.description && <p className="mb-4 text-gray-700">{college.description}</p>}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
