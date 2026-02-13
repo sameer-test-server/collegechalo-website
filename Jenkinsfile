@@ -13,6 +13,7 @@ pipeline {
     CONTAINER_NAME = 'collegechalo-app'
     IMAGE_REPO = 'collegechalo/website'
     APP_PORT = '3000'
+    APP_DOCKER_NETWORK = 'collegechalo-website_collegechalo-net'
     // Jenkins credentials IDs expected:
     // - mongodb-uri
     // - jwt-secret
@@ -64,10 +65,14 @@ pipeline {
             # Stop and remove old container if it exists
             docker rm -f "$CONTAINER_NAME" 2>/dev/null || true
 
+            # Ensure app runs on same network as nginx reverse proxy
+            docker network inspect "$APP_DOCKER_NETWORK" >/dev/null 2>&1 || docker network create "$APP_DOCKER_NETWORK"
+
             # Run new container from freshly built image
             docker run -d \
               --name "$CONTAINER_NAME" \
               --restart unless-stopped \
+              --network "$APP_DOCKER_NETWORK" \
               -p "$APP_PORT:3000" \
               -e NODE_ENV=production \
               -e PORT=3000 \
