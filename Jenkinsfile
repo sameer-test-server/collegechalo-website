@@ -50,10 +50,7 @@ pipeline {
       }
     }
 
-    stage('Deploy Container (main only)') {
-      when {
-        branch 'main'
-      }
+    stage('Deploy Container') {
       steps {
         withCredentials([
           string(credentialsId: 'mongodb-uri', variable: 'MONGODB_URI'),
@@ -78,10 +75,7 @@ pipeline {
       }
     }
 
-    stage('Health Check (main only)') {
-      when {
-        branch 'main'
-      }
+    stage('Health Check') {
       steps {
         sh '''
           for i in $(seq 1 20); do
