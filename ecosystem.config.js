@@ -1,12 +1,14 @@
+const path = require('path');
+
 module.exports = {
   apps: [
     {
       name: 'collegechalo',
       script: 'npm',
       args: 'start',
-      cwd: '/home/ubuntu/collegechalo-website',
-      instances: 'max',
-      exec_mode: 'cluster',
+      cwd: __dirname,
+      instances: 1,
+      exec_mode: 'fork',
       autorestart: true,
       watch: false,
       max_memory_restart: '1G',
@@ -14,8 +16,8 @@ module.exports = {
         NODE_ENV: 'production',
         PORT: 3000,
       },
-      error_file: '/var/log/pm2/collegechalo-error.log',
-      out_file: '/var/log/pm2/collegechalo-out.log',
+      error_file: path.join(__dirname, 'logs', 'collegechalo-error.log'),
+      out_file: path.join(__dirname, 'logs', 'collegechalo-out.log'),
       log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
       merge_logs: true,
     },
