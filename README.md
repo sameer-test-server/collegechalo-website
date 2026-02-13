@@ -77,6 +77,7 @@ npm run test
 This repo includes:
 - `Jenkinsfile`
 - `scripts/deploy-production.sh`
+- `scripts/jenkins-webhook-relay.cjs`
 
 Jenkins status (current):
 - Jenkins is running in Docker on `http://localhost:18080` (or `http://<your-lan-ip>:18080`).
@@ -84,7 +85,8 @@ Jenkins status (current):
 - Required Jenkins credentials are configured:
   - `mongodb-uri`
   - `jwt-secret`
-- Latest verified pipeline run completed successfully (build + deploy + health check).
+- GitHub webhook auto-trigger is verified (GitHub -> Smee -> local relay -> Jenkins).
+- Latest verified pipeline run completed successfully (build `#10`: build + deploy + health check).
 
 Deployment URLs (current local setup):
 - App (direct): `http://localhost:3000`
@@ -100,6 +102,11 @@ docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
 curl -I http://localhost:18080/login
 curl -I http://localhost:3000
 curl -I http://localhost:80
+
+# verify webhook relays
+npx pm2 status
+npx pm2 logs jenkins-smee --lines 40 --nostream
+npx pm2 logs jenkins-webhook-relay --lines 40 --nostream
 
 # view Jenkins logs
 docker logs --tail 200 jenkins

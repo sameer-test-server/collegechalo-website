@@ -259,7 +259,7 @@ College Chalo is a full-stack Next.js application designed to help students disc
 - ✅ Unit tests for `src/lib/college-filters.ts`
 - ✅ Unit tests for `src/lib/users.ts` (in-memory user utils)
 - ✅ Test script added to `package.json` (`npm test`)
-npm installashboard smoke test
+- ✅ Dashboard smoke test coverage
   - ✅ Integration-style test for `/api/colleges?id=` added (Jest calling route handler)
   - ✅ Additional integration test for `/api/colleges` filters added
   - ✅ Playwright config and basic smoke test added under `/e2e`
@@ -352,9 +352,10 @@ npm installashboard smoke test
 **Deliverables:**
 - ✅ Docker containerization (`collegechalo-app` + `collegechalo-nginx`)
 - ✅ Jenkins pipeline job configured (`collegechalo-ci`) from `Jenkinsfile`
-- ✅ Automated CI deploy validated (build, deploy, health-check) - latest success: build `#8`
+- ✅ Automated CI deploy validated (build, deploy, health-check) - latest success: build `#10`
 - ✅ Jenkins credentials configured and verified (`mongodb-uri`, `jwt-secret`)
-- 🔶 GitHub webhook auto-trigger validation pending final confirmation
+- ✅ GitHub webhook auto-trigger confirmed (GitHub -> Smee -> local relay -> Jenkins)
+- ✅ Webhook relay hardening added (`scripts/jenkins-webhook-relay.cjs`) to avoid redirect/method mismatch
 - 🔶 Production domain + SSL pending
 - 🔶 Monitoring/alerting dashboard pending
 
@@ -402,10 +403,10 @@ npm installashboard smoke test
 | 14 | Code Quality & Deployment | ✅ Completed | 100% |
 | 15 | Advanced Features | ✅ Completed | 100% |
 | 16 | Admin Dashboard | ✅ Completed | 100% |
-| 17 | Deployment & DevOps | 🔄 In Progress | 70% |
+| 17 | Deployment & DevOps | 🔄 In Progress | 85% |
 | 18 | Documentation & Launch | 🔄 Upcoming | 0% |
 
-**Overall Project Completion: 93% (16 phases complete + Phase 17 in progress)**
+**Overall Project Completion: 94% (16 phases complete + Phase 17 at 85%)**
 
 ---
 
@@ -420,7 +421,7 @@ npm installashboard smoke test
 - **Jest Tests:** 9 passing (4 suites) ✅
 - **Development Server:** Running on port 3000
 - **Production-like Runtime:** Working locally via Docker Compose (`:3000` app, `:80` nginx)
-- **Jenkins CI/CD:** Working locally on `:18080` with successful deploy pipeline
+- **Jenkins CI/CD:** Working locally on `:18080` with webhook auto-trigger and successful deploy pipeline
 - **Security:** Security headers configured, `.env` protected, HTTPS template ready (not enabled for local IP)
 
 ---
@@ -429,12 +430,12 @@ npm installashboard smoke test
 
 | Category | Technology |
 |----------|------------|
-| Framework | Next.js 14+ |
+| Framework | Next.js 16.1.6 |
 | Language | TypeScript 5.0 |
 | Styling | Tailwind CSS |
 | Database | MongoDB (optional) |
 | Authentication | JWT + bcryptjs |
-| Runtime | Node.js v20.20.0 |
+| Runtime | Node.js v22.22.0 |
 | Package Manager | npm 10.8 |
 
 ---
@@ -509,9 +510,9 @@ curl -X POST http://localhost:3000/api/migrate
 
 ## Next Steps
 
-1. **Phase 17:** Confirm GitHub webhook-driven auto trigger (push -> Jenkins build) end-to-end
-2. **Phase 17:** Decide production hosting target + domain mapping + SSL
-3. **Phase 17:** Add monitoring/logging automation and alerting
+1. **Phase 17:** Decide production hosting target + domain mapping + SSL
+2. **Phase 17:** Add monitoring/logging automation and alerting
+3. **Phase 17:** Add Jenkins backup/export strategy and webhook monitoring alerts
 4. **Phase 18:** Complete API/user/developer documentation for launch
 5. **Phase 18:** Final launch readiness checklist and production release runbook
 
@@ -534,9 +535,9 @@ curl -X POST http://localhost:3000/api/migrate
 - ✅ PM2 portability fixes committed and pushed.
 
 ### Immediate Next Actions
-1. Validate webhook automation from GitHub pushes.
-2. Add external production deployment target (cloud VM/VPS) with domain and SSL.
-3. Add uptime monitoring and alerting for app/nginx/Jenkins health.
+1. Add external production deployment target (cloud VM/VPS) with domain and SSL.
+2. Add uptime monitoring and alerting for app/nginx/Jenkins health.
+3. Add Jenkins backup/export strategy for disaster recovery.
 4. Keep docs (`README.md`, `commands.md`, `PROJECT_PATH.md`) in sync with each infra change.
 
 ---
@@ -557,6 +558,7 @@ curl -X POST http://localhost:3000/api/migrate
 - Logs: `npx pm2 logs collegechalo` and `/usr/local/var/log/nginx/`
 - Docker Compose: working (`collegechalo-app` on `:3000`, `collegechalo-nginx` on `:80`)
 - Jenkins: working (`jenkins` on `:18080`, pipeline `collegechalo-ci` successful on latest run)
+- Webhook relay: active via PM2 (`jenkins-smee` + `jenkins-webhook-relay`)
 
 ### Configuration
 - Environment variables: `.env.local` (dev), `.env.production` (prod)
@@ -568,14 +570,14 @@ curl -X POST http://localhost:3000/api/migrate
 - This document (`PROJECT_PATH.md`) tracks all completed phases and current status
 - `commands.md` lists all executable commands with explanations
 - `deploy/` folder contains production configuration templates
-- For continuation: proceed with remaining Phase 17 tasks (webhook confirmation, external production hardening)
+- For continuation: proceed with remaining Phase 17 tasks (external production hardening + monitoring + SSL)
 
 ---
 
-**Last Updated:** February 13, 2026 (Jenkins build #8 success + docker/nginx/app runtime verified)  
+**Last Updated:** February 13, 2026 (Jenkins build #10 success + webhook auto-trigger verified)  
 **Project Lead:** Sameer  
-**Status:** Active Development -> PM2 runtime + Docker Compose runtime + Jenkins CI/CD working locally  
-**Next Deployment:** Webhook-driven CI validation + external production environment setup
+**Status:** Active Development -> PM2 runtime + Docker Compose runtime + Jenkins CI/CD auto-deploy working locally  
+**Next Deployment:** External production environment setup (domain + SSL + monitoring)
 
 ---
 
@@ -608,3 +610,4 @@ curl -X POST http://localhost:3000/api/migrate
 - ✅ Added admin college CRUD endpoint (`/api/admin/colleges`) and management UI (`/admin/colleges`).
 - ✅ Added admin analytics endpoint (`/api/admin/analytics`) and dashboard page (`/admin/analytics`).
 - ✅ Added admin system health endpoint (`/api/admin/health`) and monitoring page (`/admin/system-health`).
+- ✅ Added webhook relay bridge (`scripts/jenkins-webhook-relay.cjs`) and validated GitHub push -> Jenkins auto-build (`#10`).

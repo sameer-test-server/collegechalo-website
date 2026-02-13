@@ -288,12 +288,16 @@ Merge to `main` after validation.
 - Jenkins container name: `jenkins`
 - Jenkins URL: `http://localhost:18080/login`
 - Job name: `collegechalo-ci`
+- Webhook relay stack:
+  - `jenkins-smee` (PM2) listens to Smee URL
+  - `jenkins-webhook-relay` (PM2) forwards to `http://127.0.0.1:18080/github-webhook/`
 - Required credentials in Jenkins:
   - `mongodb-uri`
   - `jwt-secret`
 - App containers:
   - `collegechalo-app` (port `3000`)
   - `collegechalo-nginx` (port `80`)
+- Latest verified webhook auto-trigger build: `#10` (`SUCCESS`)
 
 ### Jenkins quick bootstrap (containerized)
 Run Jenkins in Docker:
@@ -320,6 +324,30 @@ After login:
 2. Add credentials (`mongodb-uri`, `jwt-secret`).
 3. Create Pipeline job from repo `main` using `Jenkinsfile`.
 4. Add GitHub webhook to trigger builds on push.
+5. Keep relay processes online (`jenkins-smee`, `jenkins-webhook-relay`).
+
+### Jenkins webhook relay setup (owner)
+Start relay processes:
+```bash
+cd /Users/sameer/collegechalo-website
+npx pm2 start "npx smee-client --url https://smee.io/6FhEuRlsPNdFKuO --target http://127.0.0.1:18081/hook" --name jenkins-smee
+npx pm2 start scripts/jenkins-webhook-relay.cjs --name jenkins-webhook-relay
+npx pm2 save
+```
+
+Restart relay processes:
+```bash
+npx pm2 restart jenkins-smee
+npx pm2 restart jenkins-webhook-relay
+npx pm2 save
+```
+
+Verify relay health:
+```bash
+npx pm2 status
+npx pm2 logs jenkins-smee --lines 60 --nostream
+npx pm2 logs jenkins-webhook-relay --lines 60 --nostream
+```
 
 ### Jenkins health checks (owner)
 ```bash
@@ -337,6 +365,10 @@ docker logs --tail 200 jenkins
 # inspect recent pipeline console logs
 curl -sS -u 'sameer:<API_TOKEN>' \
   'http://localhost:18080/job/collegechalo-ci/lastBuild/consoleText' | tail -n 200
+
+# inspect latest Jenkins build metadata
+curl -g -sS -u 'sameer:<API_TOKEN>' \
+  "http://localhost:18080/job/collegechalo-ci/api/json?tree=nextBuildNumber,lastBuild[number,building,result,url],lastCompletedBuild[number,result,url],inQueue"
 ```
 
 ### Jenkins known-fix checklist (owner)

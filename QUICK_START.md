@@ -74,5 +74,14 @@ npx pm2 logs collegechalo --lines 120
 npx pm2 save
 ```
 
+## 9) Jenkins webhook auto-trigger quick check
+```bash
+npx pm2 status
+npx pm2 logs jenkins-smee --lines 30 --nostream
+npx pm2 logs jenkins-webhook-relay --lines 30 --nostream
+curl -g -sS -u 'sameer:<API_TOKEN>' \
+  "http://localhost:18080/job/collegechalo-ci/api/json?tree=lastBuild[number,building,result,url],lastCompletedBuild[number,result,url],inQueue"
+```
+
 ---
 For full troubleshooting and server operations, use `commands.md`.
