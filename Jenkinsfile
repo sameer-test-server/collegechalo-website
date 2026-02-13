@@ -57,6 +57,10 @@ pipeline {
           string(credentialsId: 'jwt-secret', variable: 'JWT_SECRET')
         ]) {
           sh '''
+            # Fail fast if required secrets are missing
+            test -n "$MONGODB_URI" || { echo "Missing MONGODB_URI credential"; exit 1; }
+            test -n "$JWT_SECRET" || { echo "Missing JWT_SECRET credential"; exit 1; }
+
             # Stop and remove old container if it exists
             docker rm -f "$CONTAINER_NAME" 2>/dev/null || true
 
@@ -79,7 +83,7 @@ pipeline {
       steps {
         sh '''
           for i in $(seq 1 20); do
-            if curl -fsS "http://127.0.0.1:${APP_PORT}" >/dev/null; then
+            if docker exec "$CONTAINER_NAME" sh -lc "wget -qO- http://127.0.0.1:3000 >/dev/null" >/dev/null 2>&1; then
               echo "Health check passed"
               exit 0
             fi
