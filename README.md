@@ -92,6 +92,7 @@ Deployment URLs (current local setup):
 - App (direct): `http://localhost:3000`
 - Nginx reverse proxy: `http://localhost:80`
 - Jenkins UI: `http://localhost:18080/login`
+- Local-only access: ports are bound to `127.0.0.1` (not reachable from other devices).
 
 Jenkins troubleshooting (quick):
 ```bash
