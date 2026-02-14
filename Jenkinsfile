@@ -11,6 +11,7 @@ pipeline {
   environment {
     APP_NAME = 'collegechalo'
     COMPOSE_PROJECT_NAME = 'collegechalo-website'
+    HOST_PROJECT_ROOT = '/Users/sameer/collegechalo-website'
   }
 
   stages {
