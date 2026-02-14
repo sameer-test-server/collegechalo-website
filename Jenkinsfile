@@ -10,37 +10,43 @@ pipeline {
 
   environment {
     APP_NAME = 'collegechalo'
-    CONTAINER_NAME = 'collegechalo-app'
     IMAGE_REPO = 'collegechalo/website'
-    APP_PORT = '3000'
-    APP_DOCKER_NETWORK = 'collegechalo-website_collegechalo-net'
-    // Jenkins credentials IDs expected:
+    // Jenkins credentials expected:
     // - mongodb-uri
     // - jwt-secret
   }
 
   stages {
+
     stage('Checkout') {
       steps {
         checkout scm
       }
     }
 
-    stage('Prepare Tags') {
+    stage('Prepare Image Tags') {
       steps {
         script {
-          env.GIT_SHA = sh(script: "git rev-parse --short=8 HEAD", returnStdout: true).trim()
+          env.GIT_SHA = sh(
+            script: "git rev-parse --short=8 HEAD",
+            returnStdout: true
+          ).trim()
+
           env.IMAGE_TAG = "${env.BUILD_NUMBER}-${env.GIT_SHA}"
           env.IMAGE_FULL = "${env.IMAGE_REPO}:${env.IMAGE_TAG}"
           env.IMAGE_LATEST = "${env.IMAGE_REPO}:latest"
         }
-        sh 'echo "Building image: $IMAGE_FULL"'
+
+        sh '''
+          echo "Git SHA       : $GIT_SHA"
+          echo "Image tag     : $IMAGE_TAG"
+          echo "Full image    : $IMAGE_FULL"
+        '''
       }
     }
 
     stage('Build Docker Image') {
       steps {
-        // Build from Dockerfile (multi-stage build)
         sh '''
           docker build \
             --pull \
@@ -51,34 +57,27 @@ pipeline {
       }
     }
 
-    stage('Deploy Container') {
+    stage('Deploy (Docker Compose)') {
       steps {
         withCredentials([
           string(credentialsId: 'mongodb-uri', variable: 'MONGODB_URI'),
           string(credentialsId: 'jwt-secret', variable: 'JWT_SECRET')
         ]) {
           sh '''
-            # Fail fast if required secrets are missing
-            test -n "$MONGODB_URI" || { echo "Missing MONGODB_URI credential"; exit 1; }
-            test -n "$JWT_SECRET" || { echo "Missing JWT_SECRET credential"; exit 1; }
+            set -e
 
-            # Stop and remove old container if it exists
-            docker rm -f "$CONTAINER_NAME" 2>/dev/null || true
+            echo "Deploying using docker compose"
 
-            # Ensure app runs on same network as nginx reverse proxy
-            docker network inspect "$APP_DOCKER_NETWORK" >/dev/null 2>&1 || docker network create "$APP_DOCKER_NETWORK"
+            # Export secrets for docker compose
+            export MONGODB_URI="$MONGODB_URI"
+            export JWT_SECRET="$JWT_SECRET"
 
-            # Run new container from freshly built image
-            docker run -d \
-              --name "$CONTAINER_NAME" \
-              --restart unless-stopped \
-              --network "$APP_DOCKER_NETWORK" \
-              -p "$APP_PORT:3000" \
-              -e NODE_ENV=production \
-              -e PORT=3000 \
-              -e MONGODB_URI="$MONGODB_URI" \
-              -e JWT_SECRET="$JWT_SECRET" \
-              "$IMAGE_FULL"
+            # Stop only app + nginx (do not stop Jenkins itself)
+            docker compose stop app nginx || true
+            docker compose rm -f app nginx || true
+
+            # Build & start updated app + nginx
+            docker compose up -d --build app nginx
           '''
         }
       }
@@ -87,16 +86,20 @@ pipeline {
     stage('Health Check') {
       steps {
         sh '''
+          echo "Running health check via app container"
+
           for i in $(seq 1 20); do
-            if docker exec "$CONTAINER_NAME" sh -lc "wget -qO- http://127.0.0.1:3000 >/dev/null" >/dev/null 2>&1; then
+            if docker compose exec -T app sh -lc "node -e \"fetch('http://localhost:3000').then(() => process.exit(0)).catch(() => process.exit(1))\""; then
               echo "Health check passed"
               exit 0
             fi
-            echo "Waiting for container..."
+            echo "Waiting for app to become healthy..."
             sleep 3
           done
-          echo "Health check failed"
-          docker logs --tail=120 "$CONTAINER_NAME" || true
+
+          echo "Health check FAILED"
+          docker compose ps
+          docker compose logs --tail=120
           exit 1
         '''
       }
@@ -105,12 +108,14 @@ pipeline {
 
   post {
     success {
-      echo "Pipeline succeeded: ${env.IMAGE_FULL}"
+      echo "✅ Pipeline succeeded"
+      echo "🚀 Application is live at http://localhost"
     }
+
     failure {
-      sh 'docker ps -a --filter "name=$CONTAINER_NAME" || true'
-      sh 'docker logs --tail=200 "$CONTAINER_NAME" || true'
-      echo 'Pipeline failed. Check stage logs above.'
+      echo "❌ Pipeline failed"
+      sh 'docker compose ps || true'
+      sh 'docker compose logs --tail=200 || true'
     }
   }
 }
