@@ -62,8 +62,10 @@ pipeline {
         sh '''
           echo "Running health check via app container"
 
+          JS="fetch('http://localhost:3000').then(function(){process.exit(0)}).catch(function(){process.exit(1)})"
+
           for i in $(seq 1 20); do
-            if docker-compose -p "$COMPOSE_PROJECT_NAME" exec -T app sh -lc "node -e \"fetch('http://localhost:3000').then(() => process.exit(0)).catch(() => process.exit(1))\""; then
+            if docker-compose -p "$COMPOSE_PROJECT_NAME" exec -T app sh -lc "node -e \"$JS\""; then
               echo "Health check passed"
               exit 0
             fi
