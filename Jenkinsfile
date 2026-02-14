@@ -73,11 +73,11 @@ pipeline {
             export JWT_SECRET="$JWT_SECRET"
 
             # Stop only app + nginx (do not stop Jenkins itself)
-            docker compose stop app nginx || true
-            docker compose rm -f app nginx || true
+            docker-compose stop app nginx || true
+            docker-compose rm -f app nginx || true
 
             # Build & start updated app + nginx
-            docker compose up -d --build app nginx
+            docker-compose up -d --build app nginx
           '''
         }
       }
@@ -89,7 +89,7 @@ pipeline {
           echo "Running health check via app container"
 
           for i in $(seq 1 20); do
-            if docker compose exec -T app sh -lc "node -e \"fetch('http://localhost:3000').then(() => process.exit(0)).catch(() => process.exit(1))\""; then
+            if docker-compose exec -T app sh -lc "node -e \"fetch('http://localhost:3000').then(() => process.exit(0)).catch(() => process.exit(1))\""; then
               echo "Health check passed"
               exit 0
             fi
@@ -98,8 +98,8 @@ pipeline {
           done
 
           echo "Health check FAILED"
-          docker compose ps
-          docker compose logs --tail=120
+          docker-compose ps
+          docker-compose logs --tail=120
           exit 1
         '''
       }
@@ -114,8 +114,8 @@ pipeline {
 
     failure {
       echo "❌ Pipeline failed"
-      sh 'docker compose ps || true'
-      sh 'docker compose logs --tail=200 || true'
+      sh 'docker-compose ps || true'
+      sh 'docker-compose logs --tail=200 || true'
     }
   }
 }

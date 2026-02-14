@@ -34,7 +34,9 @@ services:
       - collegechalo-net
 
   jenkins:
-    image: jenkins/jenkins:lts
+    build:
+      context: .
+      dockerfile: deploy/jenkins.dockerfile
     container_name: jenkins
     restart: unless-stopped
     ports:
