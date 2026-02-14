@@ -45,6 +45,17 @@ export default async function CollegesPage({ searchParams }: Props) {
 
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4">
+          <div className="mb-6">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-indigo-300 hover:text-indigo-700"
+              aria-label="Back to home"
+            >
+              <span aria-hidden="true">←</span>
+              Back
+            </Link>
+          </div>
+
           <CollegesSearchToggleAnimated
             initialSearch={params.search}
             state={params.state}
