@@ -179,9 +179,9 @@ export default function Dashboard() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden pt-14 md:pt-0">
         {/* Top Bar */}
-        <div className="bg-white border-b border-slate-200 px-8 py-4 flex justify-between items-center shadow-sm">
-          <h2 className="text-2xl font-bold text-slate-900">Welcome back, {user.name}! 👋</h2>
-          <div className="flex items-center gap-4 relative">
+        <div className="bg-white border-b border-slate-200 px-4 md:px-8 py-4 flex flex-wrap justify-between items-center gap-3 shadow-sm">
+          <h2 className="text-xl md:text-2xl font-bold text-slate-900">Welcome back, {user.name}! 👋</h2>
+          <div className="flex items-center gap-2 sm:gap-4 relative">
             <button
               onClick={() => {
                 const next = !showNotifications;
@@ -198,10 +198,10 @@ export default function Dashboard() {
                 </span>
               )}
             </button>
-            <span className="text-sm text-slate-600">ID: {user.id}</span>
-            <span className="text-sm text-slate-700 bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full">Active</span>
+            <span className="text-xs sm:text-sm text-slate-600">ID: {user.id}</span>
+            <span className="text-xs sm:text-sm text-slate-700 bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full">Active</span>
             {showNotifications && (
-              <div className="absolute right-0 top-12 w-96 max-h-96 overflow-auto bg-white border border-slate-200 rounded-2xl shadow-lg p-3 z-20">
+              <div className="absolute left-2 right-2 top-12 max-h-96 overflow-auto bg-white border border-slate-200 rounded-2xl shadow-lg p-3 z-20 sm:left-auto sm:right-0 sm:w-96">
                 <div className="flex items-center justify-between mb-3">
                   <p className="font-semibold text-slate-900">Notifications</p>
                   <button

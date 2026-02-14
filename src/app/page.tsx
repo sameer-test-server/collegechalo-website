@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 
 export default function Home() {
   const [user, setUser] = useState<any>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const featuredColleges = [
     { id: 'college_1', name: 'IIT Bombay', location: 'Mumbai', rank: 1 },
     { id: 'college_3', name: 'IIT Madras', location: 'Chennai', rank: 3 },
@@ -76,16 +77,16 @@ export default function Home() {
       {/* Header */}
       <header className="bg-slate-900 text-white shadow-sm">
         <nav className="max-w-7xl mx-auto px-4 py-5">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
+          <div className="flex justify-between items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-3">
               <img
                 src="/collegechalo-logo.png"
                 alt="College Chalo"
-                className="h-9 w-auto rounded"
+                className="h-8 sm:h-9 w-auto rounded"
               />
-              <h1 className="text-2xl font-semibold tracking-tight">College Chalo</h1>
+              <h1 className="text-lg sm:text-2xl font-semibold tracking-tight">College Chalo</h1>
             </div>
-            <ul className="flex gap-6">
+            <ul className="hidden md:flex gap-6 text-sm md:text-base">
               <li><a href="/colleges" className="text-slate-200 hover:text-white">Colleges</a></li>
               <li><a href="/students" className="text-slate-200 hover:text-white">Students</a></li>
               <li><a href="/compare" className="text-slate-200 hover:text-white">Compare</a></li>
@@ -94,7 +95,7 @@ export default function Home() {
               {user ? (
                 <>
                   <li><a href="/dashboard" className="text-white font-semibold">Dashboard</a></li>
-                  <li><span className="text-slate-300">Hi, {user.name}</span></li>
+                  <li className="hidden lg:inline"><span className="text-slate-300">Hi, {user.name}</span></li>
                   <li><button onClick={handleLogout} className="text-slate-200 hover:text-white">Logout</button></li>
                 </>
               ) : (
@@ -104,7 +105,38 @@ export default function Home() {
                 </>
               )}
             </ul>
+            <button
+              type="button"
+              className="md:hidden inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-700 text-slate-200 hover:text-white hover:border-slate-500"
+              onClick={() => setMobileMenuOpen((prev) => !prev)}
+              aria-label="Toggle menu"
+            >
+              <span className="text-lg">{mobileMenuOpen ? '✕' : '☰'}</span>
+            </button>
           </div>
+          {mobileMenuOpen && (
+            <div className="md:hidden mt-4 rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+              <ul className="grid gap-3 text-sm">
+                <li><a href="/colleges" className="text-slate-200 hover:text-white">Colleges</a></li>
+                <li><a href="/students" className="text-slate-200 hover:text-white">Students</a></li>
+                <li><a href="/compare" className="text-slate-200 hover:text-white">Compare</a></li>
+                <li><a href="/news" className="text-slate-200 hover:text-white">News</a></li>
+                <li><a href="/quiz" className="text-slate-200 hover:text-white">Quiz</a></li>
+                {user ? (
+                  <>
+                    <li><a href="/dashboard" className="text-white font-semibold">Dashboard</a></li>
+                    <li><span className="text-slate-300">Hi, {user.name}</span></li>
+                    <li><button onClick={handleLogout} className="text-slate-200 hover:text-white">Logout</button></li>
+                  </>
+                ) : (
+                  <>
+                    <li><a href="/auth/login" className="text-slate-200 hover:text-white">Login</a></li>
+                    <li><a href="/auth/register" className="text-slate-200 hover:text-white">Sign Up</a></li>
+                  </>
+                )}
+              </ul>
+            </div>
+          )}
         </nav>
       </header>
 

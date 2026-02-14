@@ -9,13 +9,13 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
   return (
     <header className="bg-slate-900 text-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <img
             src="/collegechalo-logo.png"
             alt="College Chalo"
-            className="h-9 w-auto bg-white rounded px-2 py-1"
+            className="h-8 sm:h-9 w-auto bg-white rounded px-2 py-1"
           />
-          <h1 className="text-4xl font-bold">{title}</h1>
+          <h1 className="text-2xl sm:text-4xl font-bold">{title}</h1>
         </div>
         {subtitle && <p className="text-slate-300 mt-2">{subtitle}</p>}
       </div>
