@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Header, Footer, Card } from '@/components';
 import { collegesData } from '@/lib/colleges-data';
 import { generateIndexId } from '@/lib/id-generator';
+import CollegesSearchToggleAnimated from './CollegesSearchToggleAnimated';
 
 interface Props {
   searchParams: Promise<{
@@ -44,6 +45,12 @@ export default async function CollegesPage({ searchParams }: Props) {
 
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4">
+          <CollegesSearchToggleAnimated
+            initialSearch={params.search}
+            state={params.state}
+            type={params.type}
+          />
+
           {(stateFilter || typeFilter || searchFilter) && (
             <div className="mb-6 rounded-2xl border border-slate-300 bg-white p-4">
               <p className="text-sm font-semibold text-slate-700">

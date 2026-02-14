@@ -1,5 +1,28 @@
 # College Chalo Quick Start
 
+## 0) Daily start after PC reboot (simple)
+1) Open **Docker Desktop** and wait until it says “Running”.
+2) Open Terminal and run:
+```bash
+cd /Users/sameer/collegechalo-website
+docker compose up -d app nginx jenkins
+```
+3) Start webhook relay (so Jenkins auto-triggers on GitHub push):
+```bash
+cd /Users/sameer/collegechalo-website
+npx pm2 start "npx smee-client --url https://smee.io/6FhEuRlsPNdFKuO --target http://127.0.0.1:18081/hook" --name jenkins-smee
+npx pm2 start scripts/jenkins-webhook-relay.cjs --name jenkins-webhook-relay
+npx pm2 save
+```
+4) Check that everything is running:
+```bash
+docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
+npx pm2 status
+```
+5) Open the website:
+- Main site: `http://127.0.0.1`
+- Jenkins: `http://127.0.0.1:18080`
+
 ## 1) Start local dev
 ```bash
 cd /Users/sameer/collegechalo-website
