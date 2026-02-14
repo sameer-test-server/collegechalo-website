@@ -39,6 +39,8 @@ services:
       dockerfile: deploy/jenkins.dockerfile
     container_name: jenkins
     restart: unless-stopped
+    environment:
+      TZ: Asia/Kolkata
     ports:
       - "127.0.0.1:18080:8080"
     volumes:

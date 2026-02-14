@@ -10,10 +10,6 @@ pipeline {
 
   environment {
     APP_NAME = 'collegechalo'
-    IMAGE_REPO = 'collegechalo/website'
-    // Jenkins credentials expected:
-    // - mongodb-uri
-    // - jwt-secret
   }
 
   stages {
@@ -24,35 +20,11 @@ pipeline {
       }
     }
 
-    stage('Prepare Image Tags') {
-      steps {
-        script {
-          env.GIT_SHA = sh(
-            script: "git rev-parse --short=8 HEAD",
-            returnStdout: true
-          ).trim()
-
-          env.IMAGE_TAG = "${env.BUILD_NUMBER}-${env.GIT_SHA}"
-          env.IMAGE_FULL = "${env.IMAGE_REPO}:${env.IMAGE_TAG}"
-          env.IMAGE_LATEST = "${env.IMAGE_REPO}:latest"
-        }
-
-        sh '''
-          echo "Git SHA       : $GIT_SHA"
-          echo "Image tag     : $IMAGE_TAG"
-          echo "Full image    : $IMAGE_FULL"
-        '''
-      }
-    }
-
-    stage('Build Docker Image') {
+    stage('Build (Docker Compose)') {
       steps {
         sh '''
-          docker build \
-            --pull \
-            -t "$IMAGE_FULL" \
-            -t "$IMAGE_LATEST" \
-            .
+          echo "Building app image with docker-compose"
+          docker-compose build app
         '''
       }
     }
